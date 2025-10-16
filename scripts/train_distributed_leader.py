@@ -127,7 +127,8 @@ def main():
 
     # Load configuration
     config, stocks = load_config()
-    stock_list = [s['ticker'] for s in stocks['stocks'] if s['enabled']][:10]
+    # Use all_stocks by default, or fall back to sp500 if not available
+    stock_list = stocks.get('all_stocks', stocks.get('sp500', []))[:10]
 
     n_generations = args.generations or config['population'].get('generations', 50)
     pop_size = config['population']['size']
@@ -140,6 +141,7 @@ def main():
 
     # Load training data
     cache = DataCache()
+    cache.connect()
     train_data, val_data, test_data = load_training_data(cache, stock_list, config)
 
     # Create distributed evolution engine
@@ -297,6 +299,10 @@ def main():
         logger.info("\nShutting down distributed server...")
         dist_engine.stop_server()
         logger.info("Server stopped")
+
+        # Disconnect cache
+        cache.disconnect()
+        logger.info("Cache disconnected")
 
 
 if __name__ == '__main__':

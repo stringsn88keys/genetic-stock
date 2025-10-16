@@ -218,7 +218,9 @@ class DistributedClient:
             )
 
         except Exception as e:
-            logger.error(f"Error processing work {work_unit.work_id}: {e}")
+            import traceback
+            error_trace = traceback.format_exc()
+            logger.error(f"Error processing work {work_unit.work_id}: {e}\n{error_trace}")
             execution_time = time.time() - start_time
 
             return WorkResult(
@@ -244,12 +246,44 @@ class DistributedClient:
         from src.genetic.chromosome import Chromosome
         from src.trading.backtest import BacktestEngine
 
-        # Reconstruct chromosome from data
-        chromosome = Chromosome.from_dict(work_unit.chromosome_data)
-
         # Get config and data
+        # Handle potential JSON serialization of dataclass fields
+        import json
+
         config = work_unit.config
+        if isinstance(config, str):
+            config = json.loads(config)
+
         train_data_info = work_unit.train_data_info
+        if isinstance(train_data_info, str):
+            train_data_info = json.loads(train_data_info)
+
+        # Reconstruct chromosome from data
+        stock_list = train_data_info.get('tickers', [])
+        chromosome = Chromosome(config=config, stock_list=stock_list)
+
+        chrom_data = work_unit.chromosome_data
+        if isinstance(chrom_data, str):
+            chrom_data = json.loads(chrom_data)
+
+        # Recursively handle any nested JSON strings
+        def deserialize_nested(obj):
+            if isinstance(obj, dict):
+                return {k: deserialize_nested(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [deserialize_nested(item) for item in obj]
+            elif isinstance(obj, str):
+                try:
+                    # Try to parse as JSON
+                    parsed = json.loads(obj)
+                    return deserialize_nested(parsed)
+                except (json.JSONDecodeError, ValueError):
+                    return obj
+            else:
+                return obj
+
+        chrom_data = deserialize_nested(chrom_data)
+        chromosome.from_dict(chrom_data)
 
         # If we have local training data, use it
         # Otherwise, would need to fetch from cache
@@ -278,10 +312,8 @@ class DistributedClient:
             min_cash_reserve=config['trading'].get('min_cash_reserve', 0.05)
         )
 
-        for ticker, df in train_data.items():
-            backtest.run(ticker, df)
-
-        metrics = backtest.get_metrics()
+        # Run backtest with all stock data at once
+        metrics = backtest.run(train_data)
 
         # Calculate fitness score
         sharpe = metrics.get('sharpe_ratio', 0)
