@@ -18,6 +18,13 @@ class DataCache:
 
     def connect(self):
         """Establish database connection"""
+        import os
+        # Create directory if it doesn't exist
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+            logger.info(f"Created database directory: {db_dir}")
+
         self.conn = sqlite3.connect(self.db_path)
         logger.info(f"Connected to database: {self.db_path}")
 
