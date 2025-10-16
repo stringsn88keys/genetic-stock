@@ -286,21 +286,64 @@ class DistributedClient:
         chromosome.from_dict(chrom_data)
 
         # If we have local training data, use it
-        # Otherwise, would need to fetch from cache
+        # Otherwise, load from cache or fetch if needed
         if self.train_data:
             train_data = self.train_data
         else:
-            # Load data from cache
+            # Load data from cache, fetching missing data as needed
             from src.data.cache import DataCache
-            cache = DataCache()
+            from src.data.fetchers import DataFetcher
+            from src.data.normalizer import DataNormalizer
+
             train_data = {}
-            for ticker in train_data_info['tickers']:
-                df = cache.get_price_data(ticker)
-                if not df.empty:
-                    # Apply same filtering as in training
-                    start_idx = train_data_info.get('start_idx', 0)
-                    end_idx = train_data_info.get('end_idx', len(df))
-                    train_data[ticker] = df.iloc[start_idx:end_idx]
+            fetcher = DataFetcher()
+            normalizer = DataNormalizer()
+
+            with DataCache() as cache:
+                # Create tables if they don't exist
+                cache.create_tables()
+
+                for ticker in train_data_info['tickers']:
+                    # Try to get from cache first
+                    start_date = train_data_info.get('start_date')
+                    end_date = train_data_info.get('end_date')
+
+                    df = cache.get_price_data(ticker, start_date, end_date)
+
+                    # If not in cache or insufficient data, fetch it
+                    if df.empty:
+                        logger.info(f"Data for {ticker} not in cache, fetching...")
+                        try:
+                            # Fetch from source
+                            raw_df = fetcher.fetch_historical_data(
+                                ticker,
+                                start_date or '2010-01-01',
+                                end_date
+                            )
+
+                            if not raw_df.empty:
+                                # Normalize the data
+                                normalized_df = normalizer.normalize_full(raw_df)
+
+                                # Save to cache
+                                cache.save_price_data(ticker, normalized_df, source='yahoo')
+
+                                # Use the fetched data
+                                df = normalized_df.set_index('date')
+                                logger.info(f"Successfully fetched and cached {len(df)} records for {ticker}")
+                            else:
+                                logger.warning(f"No data fetched for {ticker}")
+                                continue
+
+                        except Exception as e:
+                            logger.error(f"Failed to fetch data for {ticker}: {e}")
+                            continue
+
+                    if not df.empty:
+                        # Apply same filtering as in training if indices provided
+                        start_idx = train_data_info.get('start_idx', 0)
+                        end_idx = train_data_info.get('end_idx', len(df))
+                        train_data[ticker] = df.iloc[start_idx:end_idx]
 
         # Run backtest
         backtest = BacktestEngine(

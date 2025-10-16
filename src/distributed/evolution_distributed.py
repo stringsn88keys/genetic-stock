@@ -56,10 +56,25 @@ class DistributedEvolutionEngine:
         Args:
             train_data: Dictionary of training dataframes
         """
-        # We'll send metadata about the data, workers will load from cache
+        # Extract date ranges from the training data
+        start_date = None
+        end_date = None
+
+        for ticker, df in train_data.items():
+            if not df.empty:
+                ticker_start = df.index.min()
+                ticker_end = df.index.max()
+
+                if start_date is None or ticker_start < start_date:
+                    start_date = ticker_start
+                if end_date is None or ticker_end > end_date:
+                    end_date = ticker_end
+
+        # Send metadata about the data, workers will load from cache or fetch
         self.train_data_info = {
             'tickers': list(train_data.keys()),
-            # Could add date ranges, indices, etc. if needed
+            'start_date': start_date.strftime('%Y-%m-%d') if start_date else None,
+            'end_date': end_date.strftime('%Y-%m-%d') if end_date else None,
         }
 
     def evaluate_population_distributed(self, population: List[Chromosome],

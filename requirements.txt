@@ -1,18 +1,15 @@
 # Data retrieval and processing
 yfinance>=0.2.28
-pandas>=2.0.0
-numpy>=1.24.0
+pandas>=2.1.0
+numpy>=1.26.0
 requests>=2.31.0
-
-# Database
-sqlite3; python_version < '3.0'
 
 # Genetic algorithms
 deap>=1.4.1
 
 # Visualization
-matplotlib>=3.7.0
-plotly>=5.14.0
+matplotlib>=3.8.0
+plotly>=5.18.0
 
 # Web generation
 jinja2>=3.1.2
@@ -22,20 +19,20 @@ joblib>=1.3.0
 multiprocessing-logging>=0.3.4
 
 # GPU Support (optional - install if you have CUDA GPU)
-cupy-cuda12x>=12.0.0  # Uncomment for CUDA 12.x
-torch>=2.0.0          # Uncomment for PyTorch with GPU
+# cupy-cuda12x>=12.0.0  # Uncomment for CUDA 12.x
+# torch>=2.0.0          # Uncomment for PyTorch with GPU
 
 # Configuration
-pyyaml>=6.0
+pyyaml>=6.0.1
 
 # API clients (optional)
 alpha-vantage>=2.3.1
 
 # Utilities
 python-dotenv>=1.0.0
-tqdm>=4.65.0
+tqdm>=4.66.0
 psutil>=5.9.0
 
 # Testing (optional)
-pytest>=7.3.0
+pytest>=8.0.0
 pytest-cov>=4.1.0
