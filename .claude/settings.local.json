@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(find:*)",
+      "Bash(python:*)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(wc:*)",
+      "Bash(done)",
+      "Bash(tree:*)",
+      "Bash(awk:*)",
+      "Bash(sqlite3:*)",
+      "Bash(pip install:*)",
+      "WebSearch",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:stockanalysis.com)",
+      "Bash(nvcc:*)",
+      "Bash(./venv/Scripts/python.exe:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

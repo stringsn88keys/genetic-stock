@@ -1,0 +1,87 @@
+# Genetic Algorithm Stock Trading System Configuration
+
+# Population parameters
+population:
+  size: 1000
+  initial_capital: 1000.0
+
+# Evolution parameters
+evolution:
+  generations: 100
+  tournament_size: 5
+  elitism_rate: 0.10  # Top 10% survive unchanged
+  crossover_probability: 0.8
+  mutation_probability: 0.15
+  mutation_sigma: 0.1  # For Gaussian mutation
+  discrete_mutation_rate: 0.05
+
+# Fitness function weights
+fitness:
+  alpha: 0.4   # Total return weight
+  beta: 0.25   # Sharpe ratio weight
+  gamma: 0.15  # Win rate weight
+  delta: 0.1   # Max drawdown penalty
+  epsilon: 0.05  # Transaction cost penalty
+  zeta: 0.05   # Inactivity penalty
+  min_trades: 10  # Minimum trades to avoid inactivity penalty
+
+# Trading parameters
+trading:
+  commission: 0.0  # Commission-free trading
+  slippage: 0.001  # 0.1% slippage per trade
+  min_cash_reserve: 0.05  # 5% minimum cash
+  max_positions: 10  # Maximum simultaneous positions
+
+# Risk parameters (chromosome defaults)
+risk_defaults:
+  max_position_pct: 0.25  # Max 25% per position
+  stop_loss_pct: -0.08    # 8% stop loss
+  take_profit_pct: 0.15   # 15% take profit
+
+# Chromosome parameter ranges
+chromosome_ranges:
+  weights:
+    min: -1.0
+    max: 1.0
+  thresholds:
+    buy_min: 0.3
+    buy_max: 0.9
+    sell_min: -0.9
+    sell_max: -0.3
+  windows:
+    short_min: 2
+    short_max: 10
+    medium_min: 10
+    medium_max: 50
+    long_min: 50
+    long_max: 200
+
+# Data parameters
+data:
+  historical_years: 10
+  train_split: 0.7   # 70% training
+  validation_split: 0.2  # 20% validation
+  test_split: 0.1    # 10% testing
+  volume_ma_window: 30
+
+# Data sources
+data_sources:
+  primary: yahoo  # yahoo, alpha_vantage, twelve_data
+  fallback_enabled: true
+  cache_enabled: true
+
+# Parallel processing
+parallel:
+  enabled: true
+  n_jobs: -1  # Use all available cores (-1) or specify number
+
+# Blog generation
+blog:
+  top_performers: 50
+  recent_trades_days: 30
+  chart_days: 365
+
+# Logging
+logging:
+  level: INFO
+  file: C:\projects\logs\genetic_trading.log
